@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -16,94 +17,106 @@ type ListaTareas struct{
 	tareas []Tarea
 }
 
-func (lista *ListaTareas) mostrarTareas(){
+func (l *ListaTareas) agregarTarea(t Tarea){
+	l.tareas = append(l.tareas, t)
+	fmt.Println("Tarea agregada correctamente")
+}
+
+func (l *ListaTareas) marcarCompletado(indice int){
+	l.tareas[indice].completada = true
+}
+
+func (l *ListaTareas) eliminarTarea(indice int){
+	l.tareas = append(l.tareas[:indice], l.tareas[indice+1:]...)
+}
+
+func (l *ListaTareas) editarTarea(indice int, t Tarea){
+	l.tareas[indice] = t
+}
+
+func (lista *ListaTareas) MostrarTareas(){
 	fmt.Println("Listado de Tareas: ")
-	fmt.Println("===================")
-	for ind, t := range lista.tareas{
-		fmt.Printf("%d. %s - %s - Completada: %t \n", ind, t.nombre, t.descripcion, t.completada)
+	fmt.Println("================================")
+	for ind, t:= range lista.tareas{
+		fmt.Printf("%d. %s - %s - completada: %t \n", ind, t.nombre, t.descripcion, t.completada)
 	}
-	fmt.Println("===================")
-}
-
-func (lista *ListaTareas) agregarTarea(t Tarea){
-	lista.tareas = append(lista.tareas, t)
-}
-
-func (lista *ListaTareas) marcarCompletada(indice int){
-	lista.tareas[indice].completada = true 
-}
-
-func (lista *ListaTareas) editarTarea(indice int, t Tarea){
-	lista.tareas[indice] = t
-}
-
-func (lista *ListaTareas) eliminarTarea(indice int){
-	lista.tareas = append(lista.tareas[:indice], lista.tareas[indice+1:]...)
-}
-
-func displayMenuSelectOption() int{
-	fmt.Print(
-		"Seleccione una opción: \n",
-		"1. Agregar tarea \n",
-		"2. Marcar tarea como completada \n",
-		"3. Editar Tarea \n",
-		"4. Eliminar Tarea \n",
-		"5. Salir \n",
-		"Ingrese la opción: \n",
-	)
-	var opcion int
-	fmt.Scanln(&opcion)
-	return opcion
+	fmt.Println("================================")
 }
 
 func crearTarea(action string) Tarea{
-	fmt.Printf("Ingrese nombre de la tarea que desea %s: \n", action)
 	leer := bufio.NewReader(os.Stdin)
+	fmt.Printf("Ingrese nombre de la tarea que desea %s: ", action)
 	nombre, _ := leer.ReadString('\n')
-	fmt.Printf("Ingrese desripcion de la tarea que desea %s: \n", action)
+	fmt.Printf("Ingrese descripcion de la tarea que desea %s: ", action)
 	descr, _ := leer.ReadString('\n')
 	return Tarea{nombre: nombre, descripcion: descr}
 }
 
-func obtenerIndice(action string) int{
-	fmt.Printf("Ingrese indice de la tarea que desea %s: \n", action)
-	var ind int
-	fmt.Scanln(&ind)
-	return ind
+func (lista *ListaTareas) obtenerIndice(action string) (int, error) {
+	fmt.Printf("Ingresar indice de la tarea %s: ", action)
+	var indice int
+	fmt.Scanln(&indice)
+
+	if indice<0 || indice>=len(lista.tareas){
+		return -1, errors.New("Valor de íncide incorrecto")
+	}
+
+	return indice, nil
 }
 
 func main(){
 	lista := ListaTareas{}
 
 	for{
-		opcion := displayMenuSelectOption()
+		fmt.Println("Seleccione una opción: ")
+		fmt.Println("1. Agregar tarea")
+		fmt.Println("2. Marcar tarea como completada")
+		fmt.Println("3. Editar Tarea")
+		fmt.Println("4. Eliminar Tarea")
+		fmt.Println("5. Salir")
+		fmt.Println("Ingrese la opción:")
+		var opcion int
+		fmt.Scanln(&opcion)
 	
 		switch opcion{
 		case 1:
-			//Agregar una tarea
+			//agregar
 			t := crearTarea("agregar")
 			lista.agregarTarea(t)
 		case 2:
-			// Marcar tarea como completada
-			ind := obtenerIndice("marcar como completada")
-			lista.marcarCompletada(ind)
+			//marcar tarea como completada
+			indice, err := lista.obtenerIndice("marcar como completada")
+			if err != nil{
+				fmt.Println("Error: ", err)
+				break
+			}
+			lista.marcarCompletado(indice)
 		case 3:
-			//Editar la tarea
-			ind := obtenerIndice("editar")
-
+			//editar una tarea
+			indice, err := lista.obtenerIndice("editar")
+			if err != nil{
+				fmt.Println("Error: ", err)
+				break
+			}
 			t := crearTarea("editar")
-			lista.editarTarea(ind, t)
+
+			lista.editarTarea(indice, t)
 		case 4:
-			// Eliminar una tarea
-			ind := obtenerIndice("eliminar")
-			lista.eliminarTarea(ind)
+			//Eliminar tarea
+			indice, err := lista.obtenerIndice("eliminar")
+			if err != nil{
+				fmt.Println("Error: ", err)
+				break
+			}
+			lista.eliminarTarea(indice)
 		case 5:
 			fmt.Println("Saliendo del programa...")
 			return
 		default:
-			fmt.Println("Opción ingresada no es correcta.")
+			fmt.Println("Opcion incorrecta.")
 		}
 	
-		lista.mostrarTareas()
+		lista.MostrarTareas()
 	}
+	
 }
