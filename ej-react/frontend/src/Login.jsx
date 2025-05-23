@@ -12,6 +12,7 @@ const Login = () => {
         
         if(username=="admin" && password=="admin"){
             console.log("Login OK");
+            localStorage.setItem("isLoggedIn", "true");
             navigate("/actividades");
         }else{
             console.log("Login incorrecto");

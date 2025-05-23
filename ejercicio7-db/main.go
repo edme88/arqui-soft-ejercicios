@@ -2,15 +2,15 @@ package main
 
 import (
 	"log"
+	"time"
 	"vinyl-api/database"
 	handlers "vinyl-api/handler"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-func wrap(f func(ctx *gin.Context, db *gorm.DB), db db *gorm.DB)
 
 func main(){
 
@@ -20,6 +20,15 @@ func main(){
 	}
 
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET","POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge: 12 * time.Hour,
+  	}))
 
 	router.GET("/albums", func(ctx *gin.Context) {
 		handlers.GetAlbums(ctx, db)
